@@ -32,6 +32,10 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// Bind to 0.0.0.0 and PORT from environment variable (important for Render)
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+app.Urls.Add($"http://0.0.0.0:{port}");
+
 app.Run();
 
 
