@@ -30,13 +30,26 @@ public class DBservices
     //--------------------------------------------------------------------------------------------------
     // This method creates a connection to the database according to the connectionString name in the web.config 
     //--------------------------------------------------------------------------------------------------
-    public SqlConnection connect(String conString)
+    public SqlConnection connect(string conString)
     {
+        // Try to read the connection string from environment variables
+        string cStr = Environment.GetEnvironmentVariable(conString);
 
-        // read the connection string from the configuration file
-        IConfigurationRoot configuration = new ConfigurationBuilder()
-        .AddJsonFile("appsettings.json").Build();
-        string cStr = configuration.GetConnectionString("myProjDB");
+        if (string.IsNullOrEmpty(cStr))
+        {
+            // Fallback: try to read from appsettings.json (for local development)
+            IConfigurationRoot configuration = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json", optional: true) // optional: true => no crash if file is missing
+                .Build();
+
+            cStr = configuration.GetConnectionString(conString);
+        }
+
+        if (string.IsNullOrEmpty(cStr))
+        {
+            throw new Exception($"Connection string '{conString}' not found in environment variables or appsettings.json.");
+        }
+
         SqlConnection con = new SqlConnection(cStr);
         con.Open();
         return con;
